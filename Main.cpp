@@ -121,23 +121,8 @@ void printTree(Node* node, int indentation){
           }
      }
 }
-struct Node* addTree(int element, Node* &current){
-    //If there isn't anything in the tree yet
-     if(current == NULL){
-          return(newRedNode(element));
-     }   
-     //Keep going down the tree until it finds the right spot
-     else{
-          //If the new element is less than the current node then it needs to go down
-          if(element <= current->data){
-               current->left = addTree(element, current->left);
-          }
-          //Otherwise it needs to go left
-          else{
-               current->right = addTree(element, current->right);
-          }
-          //return the node pointer to make the recursion work
-          return current;
-     }
-
+struct Node* addNode(int element, Node* &current){
+     struct Node* n = newRedNode(int element);
+     
+     insert(
 }
