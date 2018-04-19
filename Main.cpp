@@ -7,7 +7,9 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <iomanip>
+#include <deque>
+#include <list>
+#include <queue>
 
 using namespace std;
 
@@ -15,23 +17,30 @@ struct Node{
      int data;
      Node* left;
      Node* right;
+     Node* parent;
      bool is_black;
-}
+};
 
-struct Node* newNode(int element);
-void printTree(Node* head, int indentation);
+struct Node* newRedNode(int data);
+struct Node* newBlackNode(int data);
+void rotateRight(Node* node);
+void printTree(Node* head);
+void rotateLeft(Node* node);
+void fixTree(Node* node);
+void findLeaf(struct Node* current, struct Node* n);
+struct Node* addNode(int element, Node* &root);
 
 int main(){
      bool going = true;
      //Keep getting inputs until the user asks to stop
      char* input;
      Node* head = NULL;
-     cout << "Enter the character I if you would prefer to be prompted for input: " << endl;
+     cout << "Enter the character I for input prompts and enter the character F for file entry:  " << endl;
      char* input_1;
      input_1 = new char[80];
      cin >> input_1;
      if(strcmp(input_1, "I") == 0){
-          cout << "Enter the numbers and enter the character N when done." << endl;
+          cout << "Enter the numbers and enter the character N when done or P to print." << endl;
           while(going){
                cout << "Number: ";
                input =  new char[80];
@@ -39,13 +48,15 @@ int main(){
                //If the user inputs the N then the program needs to stop
                if(strcmp(input, "N") == 0){
                     going = false;
-                    delete input;
-                    printTree(head, 20);
+                    printTree(head);
+               }
+               //If they put in P then it prints it
+               if(strcmp(input, "P") == 0){
+                    printTree(head);
                }
                //The directions say to ignore 0
-               else if(strcmp(input, "0") == 0){
-
-               }
+               else if(strcmp(input, "0") == 0){ 
+               } 
                else{
                        //Turn the input into an integer
                        stringstream convert;
@@ -62,7 +73,7 @@ int main(){
                }
           }
      }
-     else{
+     else if(strcmp("F", input_1) == 0){
           cout << "Please enter the filename of the file you would like to read in: ";
           input = new char[1000];
           cin >> input;
@@ -74,9 +85,15 @@ int main(){
           }
           int x;
           while(inFile >> x){
-               head = addNode(x, head);
+               //The adding function gets slightly screwed up if the head is null
+               if(head == NULL){
+                    head = newBlackNode(x);
+               }
+                  else{   
+                         head = addNode(x, head);
+                  }
           }
-          printTree(head, 20);
+          printTree(head);
           delete input;
      }
 }
@@ -86,7 +103,8 @@ struct Node* newRedNode(int data){
      node->data = data;
      node->right = NULL;
      node->left = NULL;
-     node->isBlack = false;
+     node->parent = NULL;
+     node->is_black = false;
      return node;
 }
 struct Node* newBlackNode(int data){
@@ -94,35 +112,193 @@ struct Node* newBlackNode(int data){
      node->data = data;
      node->right = NULL;
      node->left = NULL;
-     node->isBlack = true;
+     node->parent = NULL;
+     node->is_black = true;
      return node;
 }
 //Print out the tree in nice tree form
-void printTree(Node* node, int indentation){
-     char color = 'b';
-     if(node != NULL){
-          //Get the indentation in the right place
-          if(indentation)
-               cout << std::setw(indentation) << ' ';
-          if(node->is_black){
-               color = 'b';
+void printTree(Node* node){
+     queue<Node*> q;
+     q.push(node);
+     cout << "Tree: " << endl;
+     bool moreonlevel = true;
+     //Keep going while there are still nodes on the level.
+     while(moreonlevel){
+          int levelCount = q.size();
+          moreonlevel = false;
+          while(levelCount > 0){
+                  Node* n = q.front();
+                  q.pop();
+                  if(n == NULL){
+                         cout << "_ ";
+                         q.push(NULL);
+                         q.push(NULL);
+                  }
+                  else{
+                          //Say that there are more nodes that can be checked and add the proper nodes to the tree.
+                          moreonlevel = true;
+                          char color = 'R';
+                          if(n->is_black){
+                              color = 'B';
+                          }
+                          cout << n->data << color << " ";
+                          q.push(n->left);
+                          q.push(n->right);
+                  }
+                  //It went through one of the levels so take the counter down.
+                  levelCount--;
+          }
+          //End of a tree level
+          cout << endl;
+
+     }
+}
+struct Node* addNode(int element, Node* &root){
+     struct Node* n = newRedNode(element);
+
+     //Place the node in the tree just like a binary tree
+     findLeaf(root, n);
+     
+     //Fix up the whole tree so that the properties are preserved
+     fixTree(n);
+
+     //Find the new root of the tree since sometimes it gets screwed up
+     while(n->parent != NULL){
+          n = n->parent;
+     }
+     return n;
+     
+}
+//Get the grandparent of a node and make sure its not NULL
+struct Node* grandParent(Node* node){
+     if(node->parent != NULL){
+          Node* parent = node->parent;
+          if(parent->parent != NULL){
+               return parent->parent;
+          }
+          return NULL;
+     }
+     return NULL;
+}
+//Find the sibling given a node. This is just for convenience in rotations
+struct Node* sibling(Node* node){
+     //If its the root it cannot have a sibling
+     if(node->parent == NULL){
+          return NULL;
+     }
+     if(node->parent->left == node){
+          return node->parent->right;
+     }
+     else{
+             return node->parent->left;
+     }
+}
+//Find the uncle of a given node. This is for convenience
+struct Node* uncle(Node* node){
+     //If there is no grandparent then there can be no uncle
+     if(grandParent(node) == NULL){
+          return NULL;
+     }
+     //The uncle is the parent's sibling
+     return sibling(node->parent);
+}
+//Recursively go through the tree until it finds a leaf where the node can go.
+void findLeaf(struct Node* current, struct Node* n){
+     //Descend the tree looking for a slot
+     if(n->data < current->data){
+          //check if there is a slot for the node immediately
+          if(current->left != NULL){
+               //Continue looping through but with using the left node as the root
+               findLeaf(current->left, n);
+               return;
           }
           else{
-               color = 'r';
+               current->left = n;
           }
-          cout << node->data << color << '\n';
-          //Recursively call on the left
-          if(node->left){
-               printTree(node->left, indentation-6);
+     }
+     //Go the other way for a greater value
+     else{
+          //Check if there is an immediate slot to the right
+          if(current->right != NULL){
+               findLeaf(current->right, n);
+                  return;
           }
-          //Recursively call on the right
-          if(node->right){
-               printTree(node->right, indentation+4);
+          else{
+               current->right = n;
+          }
+     }
+     
+     //Give the new node the right properties
+     n->parent = current;
+     n->is_black = false;
+}
+void fixTree(Node* node){
+     if(node->parent == NULL){
+          node->is_black = true;
+     }
+     else if(node->parent->is_black){
+          return;
+     }
+     //Case 2: The Node's parent is red and the uncle is also red
+     else if(uncle(node) != NULL && !(uncle(node)->is_black)){
+          //Make the parent and uncle black
+          node->parent->is_black = true;
+          uncle(node)->is_black = true;
+          //But make the grandparent red to preserve the red black tree property
+          grandParent(node)->is_black = false;
+          //Then recurse
+          fixTree(grandParent(node));
+     }
+     //Case 4: Something else is going on
+     else{
+          if(grandParent(node) != NULL && grandParent(node)->left != NULL &&(node == (grandParent(node)->left->right))){
+               rotateLeft(node->parent);
+               node = node->left;
+          }
+          else if(grandParent(node) != NULL && grandParent(node)->right != NULL && (node == grandParent(node)->right->left)){
+               rotateRight(node->parent);
+               node = node->right;
+          } 
+          if(node == node->parent->left){
+               rotateRight(grandParent(node));
+          }
+          else if(node == node->parent->right){
+               rotateLeft(grandParent(node));
+          }
+          if(node->parent != NULL){
+                  node->parent->is_black = true;
+          }
+          if(grandParent(node) != NULL){
+               grandParent(node)->is_black = false;
           }
      }
 }
-struct Node* addNode(int element, Node* &current){
-     struct Node* n = newRedNode(int element);
-     
-     insert(
+//Rotate the tree left around a node
+void rotateLeft(Node* node){
+     //This happened a surprising amount
+     cout << "Made it";
+     if(node == NULL){
+             return;
+     }
+     struct Node* temp = node->right;
+     //Make sure the new node isn't a leaf
+     if(temp == NULL){
+          return;
+     }
+     node->right = temp->left;
+     temp->left = node;
+     temp->parent = node->parent;
+     node->parent = temp;
+}
+//Rotate the tree right around a node
+void rotateRight(Node* node){
+     struct Node* temp = node->left;
+     //Make sure the new node isn't a leaf
+     if(temp == NULL){
+          return;
+     }
+     node->left = temp->right;
+     temp->right = node;
+     temp->parent = node->parent;
+     node->parent = temp;
 }
