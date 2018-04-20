@@ -195,10 +195,6 @@ struct Node* sibling(Node* node){
 }
 //Find the uncle of a given node. This is for convenience
 struct Node* uncle(Node* node){
-     //If there is no grandparent then there can be no uncle
-     if(grandParent(node) == NULL){
-          return NULL;
-     }
      //The uncle is the parent's sibling
      return sibling(node->parent);
 }
@@ -240,17 +236,19 @@ void fixTree(Node* node){
           return;
      }
      //Case 2: The Node's parent is red and the uncle is also red
-     else if(uncle(node) != NULL && !(uncle(node)->is_black)){
+     else if(uncle(node) != NULL && (uncle(node)->is_black) == false){
           //Make the parent and uncle black
           node->parent->is_black = true;
           uncle(node)->is_black = true;
           //But make the grandparent red to preserve the red black tree property
           grandParent(node)->is_black = false;
+          cout << "Case 3" << endl;
           //Then recurse
           fixTree(grandParent(node));
      }
      //Case 4: Something else is going on
      else{
+          cout << "Case 4" << endl;
           if(grandParent(node) != NULL && grandParent(node)->left != NULL &&(node == (grandParent(node)->left->right))){
                rotateLeft(node->parent);
                node = node->left;
@@ -258,12 +256,14 @@ void fixTree(Node* node){
           else if(grandParent(node) != NULL && grandParent(node)->right != NULL && (node == grandParent(node)->right->left)){
                rotateRight(node->parent);
                node = node->right;
-          } 
-          if(node == node->parent->left){
-               rotateRight(grandParent(node));
           }
-          else if(node == node->parent->right){
-               rotateLeft(grandParent(node));
+          else{ 
+                  if(node == node->parent->left){
+                       rotateRight(grandParent(node));
+                  }
+                  else{
+                       rotateLeft(grandParent(node));
+                  }
           }
           if(node->parent != NULL){
                   node->parent->is_black = true;
@@ -275,8 +275,8 @@ void fixTree(Node* node){
 }
 //Rotate the tree left around a node
 void rotateLeft(Node* node){
+     cout << node->data << endl;
      //This happened a surprising amount
-     cout << "Made it";
      if(node == NULL){
              return;
      }
@@ -288,6 +288,7 @@ void rotateLeft(Node* node){
      node->right = temp->left;
      temp->left = node;
      temp->parent = node->parent;
+     temp->parent->right = temp;
      node->parent = temp;
 }
 //Rotate the tree right around a node
@@ -300,5 +301,6 @@ void rotateRight(Node* node){
      node->left = temp->right;
      temp->right = node;
      temp->parent = node->parent;
+     temp->parent->left = temp;
      node->parent = temp;
 }
