@@ -84,17 +84,24 @@ int main(){
                return 1;
           }
           int x;
-          while(inFile >> x){
+          char* input_1 = new char[1000];
+          cin >> input_1;
+          stringstream separate(input_1);
+          while(separate >> x){
                //The adding function gets slightly screwed up if the head is null
                if(head == NULL){
                     head = newBlackNode(x);
                }
-                  else{   
+               else{   
                          head = addNode(x, head);
-                  }
+               }
+               if (separate.peek() == ','){
+                       separate.ignore();
+               }
           }
           printTree(head);
           delete input;
+          delete[] input_1;
      }
 }
 //Shortcut to initialize new nodes as they are created
@@ -288,7 +295,9 @@ void rotateLeft(Node* node){
      node->right = temp->left;
      temp->left = node;
      temp->parent = node->parent;
-     temp->parent->right = temp;
+     if(temp->parent != NULL){
+          temp->parent->right = temp;
+     }
      node->parent = temp;
 }
 //Rotate the tree right around a node
@@ -301,6 +310,8 @@ void rotateRight(Node* node){
      node->left = temp->right;
      temp->right = node;
      temp->parent = node->parent;
-     temp->parent->left = temp;
+     if(temp->parent != NULL){
+             temp->parent->left = temp;
+     }
      node->parent = temp;
 }
