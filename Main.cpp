@@ -40,7 +40,7 @@ int main(){
      input_1 = new char[80];
      cin >> input_1;
      if(strcmp(input_1, "I") == 0){
-          cout << "Enter the numbers and enter the character N when done or P to print." << endl;
+          cout << "Enter the numbers separated by returns and enter the character N when done or P to print." << endl;
           while(going){
                cout << "Number: ";
                input =  new char[80];
@@ -295,8 +295,9 @@ void rotateLeft(Node* node){
      temp->left = node;
      temp->parent = node->parent;
      if(temp->parent != NULL){
-          temp->parent->left = temp;
+          temp->parent->right = temp;
      }
+     cout << node->data << endl;
      node->parent = temp;
      node->is_black = false;
 }
@@ -311,8 +312,7 @@ void rotateRight(Node* node){
      temp->right = node;
      temp->parent = node->parent;
      if(node->parent != NULL){
-             node->parent->right = NULL;
-             temp->parent->right = temp;
+             temp->parent->left = temp;
      }
      node->parent = temp;
      node->is_black = false;
