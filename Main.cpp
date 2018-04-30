@@ -176,6 +176,7 @@ struct Node* addNode(int element, Node* &root){
      while(n->parent != NULL){
           n = n->parent;
      }
+     n->is_black = true;
      return n;
      
 }
@@ -252,7 +253,6 @@ void fixTree(Node* node){
           uncle(node)->is_black = true;
           //But make the grandparent red to preserve the red black tree property
           grandParent(node)->is_black = false;
-          cout << "Case 3" << endl;
           //Then recurse
           fixTree(grandParent(node));
      }
@@ -266,14 +266,11 @@ void fixTree(Node* node){
                rotateRight(node->parent);
                node = node->right;
           }
-          else{ 
-                  if(node == node->parent->left){
-                       rotateRight(grandParent(node));
-                         cout << "Case 4" << endl;
-                  }
-                  else{
-                       rotateLeft(grandParent(node));
-                  }
+          if(node == node->parent->left){
+               rotateRight(grandParent(node));
+          }
+          else{
+               rotateLeft(grandParent(node));
           }
           if(node->parent != NULL){
                   node->parent->is_black = true;
@@ -285,7 +282,6 @@ void fixTree(Node* node){
 }
 //Rotate the tree left around a node
 void rotateLeft(Node* node){
-     cout << node->data << endl;
      //This happened a surprising amount
      if(node == NULL){
              return;
@@ -299,9 +295,10 @@ void rotateLeft(Node* node){
      temp->left = node;
      temp->parent = node->parent;
      if(temp->parent != NULL){
-          temp->parent->right = temp;
+          temp->parent->left = temp;
      }
      node->parent = temp;
+     node->is_black = false;
 }
 //Rotate the tree right around a node
 void rotateRight(Node* node){
@@ -314,8 +311,9 @@ void rotateRight(Node* node){
      temp->right = node;
      temp->parent = node->parent;
      if(node->parent != NULL){
-             temp->parent->left = temp;
+             node->parent->right = NULL;
+             temp->parent->right = temp;
      }
      node->parent = temp;
-     cout << node->data << endl;
+     node->is_black = false;
 }
