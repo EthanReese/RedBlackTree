@@ -84,19 +84,22 @@ int main(){
                return 1;
           }
           int x;
-          char* input_1 = new char[1000];
-          cin >> input_1;
-          stringstream separate(input_1);
-          while(separate >> x){
+          while(inFile){
                //The adding function gets slightly screwed up if the head is null
+               char* input_1 = new char[1000];
+               inFile.getline(input_1, 1000, ',');
+               stringstream convert;
+               convert << input_1;
+               int element = 0;
+               convert >> element;
                if(head == NULL){
-                    head = newBlackNode(x);
+                    head = newBlackNode(element);
                }
                else{   
-                         head = addNode(x, head);
+                         head = addNode(element, head);
                }
-               if (separate.peek() == ','){
-                       separate.ignore();
+               if(inFile.eof()){
+                    break;
                }
           }
           printTree(head);
@@ -255,7 +258,6 @@ void fixTree(Node* node){
      }
      //Case 4: Something else is going on
      else{
-          cout << "Case 4" << endl;
           if(grandParent(node) != NULL && grandParent(node)->left != NULL &&(node == (grandParent(node)->left->right))){
                rotateLeft(node->parent);
                node = node->left;
@@ -267,6 +269,7 @@ void fixTree(Node* node){
           else{ 
                   if(node == node->parent->left){
                        rotateRight(grandParent(node));
+                         cout << "Case 4" << endl;
                   }
                   else{
                        rotateLeft(grandParent(node));
@@ -310,8 +313,9 @@ void rotateRight(Node* node){
      node->left = temp->right;
      temp->right = node;
      temp->parent = node->parent;
-     if(temp->parent != NULL){
+     if(node->parent != NULL){
              temp->parent->left = temp;
      }
      node->parent = temp;
+     cout << node->data << endl;
 }
