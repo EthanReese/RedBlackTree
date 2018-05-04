@@ -239,7 +239,7 @@ void findLeaf(struct Node* current, struct Node* n){
      n->parent = current;
      n->is_black = false;
 }
-void fixTree(Node* node){
+void fixTree(Node* node){   
      if(node->parent == NULL){
           node->is_black = true;
      }
@@ -266,7 +266,7 @@ void fixTree(Node* node){
                rotateRight(node->parent);
                node = node->right;
           }
-          if(node == node->parent->left){
+          if(node->parent->left == node){
                rotateRight(grandParent(node));
           }
           else{
@@ -292,12 +292,19 @@ void rotateLeft(Node* node){
           return;
      }
      node->right = temp->left;
+     if(node->right != NULL){
+             node->right->parent = node;
+     }
      temp->left = node;
      temp->parent = node->parent;
      if(temp->parent != NULL){
-          temp->parent->right = temp;
+          if(temp->parent->right == node){
+               temp->parent->right = temp;
+          }
+          else{
+               temp->parent->left = temp;
+          }
      }
-     cout << node->data << endl;
      node->parent = temp;
      node->is_black = false;
 }
@@ -309,10 +316,18 @@ void rotateRight(Node* node){
           return;
      }
      node->left = temp->right;
+     if(node->left != NULL){
+             node->left->parent = node;
+     }
      temp->right = node;
      temp->parent = node->parent;
      if(node->parent != NULL){
+          if(temp->parent->left == node){
              temp->parent->left = temp;
+          }
+          else{
+             temp->parent->right = temp;
+          }
      }
      node->parent = temp;
      node->is_black = false;
