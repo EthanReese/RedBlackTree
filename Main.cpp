@@ -40,7 +40,7 @@ int main(){
      input_1 = new char[80];
      cin >> input_1;
      if(strcmp(input_1, "I") == 0){
-          cout << "Enter the numbers separated by returns and enter the character N when done or P to print." << endl;
+          cout << "Enter the numbers separated by returns and enter the character N when done, L to lookup, D to delete, or P to print." << endl;
           while(going){
                cout << "Number: ";
                input =  new char[80];
@@ -56,6 +56,37 @@ int main(){
                }
                //The directions say to ignore 0
                else if(strcmp(input, "0") == 0){ 
+               }
+               //Get a number input and then run the lookup function on that number
+               else if(strcmp(input, "L") == 0){
+                       char* input_2;
+                       input_2 = new char[80];
+                       cout << "Please input the number that you would like to lookup: ";
+                       cin >> input_2;
+                       stringstream convert;
+                       convert << input_2;
+                       int element = 0;
+                       convert >> element;
+                       delete input_2; 
+                       if(lookUp(head, element) != NULL){
+                              cout << "The element is in the tree." << endl;
+                       }
+                       else{
+                               cout << "The element is not in the tree." << endl;
+                       }
+               }
+              //Get a number input and then run all of the deletion structure on it
+               else if(strcmp(input, "D") == 0){
+                    char* input_2;
+                    input_2 = new char[80];
+                    cout << "Please input the number that you would like to delete: ";
+                    cin >> input_2;
+                    stringstream convert;
+                    convert << input_2;
+                    int element = 0;
+                    convert >> element;
+                    delete input_2;
+                    
                } 
                else{
                        //Turn the input into an integer
@@ -332,3 +363,23 @@ void rotateRight(Node* node){
      node->parent = temp;
      node->is_black = false;
 }
+struct Node* lookUp(struct Node* current, int element){
+     //If there is nothing left in the subtree than the value isn't in the tree
+     if(current == NULL){
+          return NULL;
+     }
+     else{
+          if(current->data == element){
+               return current;
+          }
+          else{
+               if(element < current->data){
+                    return lookUp(current->left, element);
+               }
+               else{
+                       return lookUp(current->right, element);
+               }
+          }
+     }
+}
+
