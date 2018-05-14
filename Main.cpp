@@ -422,7 +422,7 @@ void findSuccessor(struct node* current){
      deleteInit(min);
 }
 //Delete a node with no more than one non leaf child
-void deleteNorm(struct node* current){
+struct node* deleteNorm(struct node* current){
      if(current->right == NULL){
           struct node* child = current->left;
      }
@@ -430,7 +430,17 @@ void deleteNorm(struct node* current){
           struct node* child = current->right;
      }
      else{
-          //Check what happens if it has no children
+          if(current->is_black == false){
+               struct node* parent = current->parent;
+               delete current;
+               return parent;
+          }
+          else{
+               struct node* parent = current->parent;
+               d_case1(current);
+               delete current;
+               return parent;
+          }
      }
      replace_node(current, child);
      if(current->is_black){
@@ -438,7 +448,7 @@ void deleteNorm(struct node* current){
                child->is_black = true;
           }
           else{
-                  }
+               d_case1(child);                  
           }
      }
      delete current;
@@ -450,20 +460,80 @@ void d_case1(struct node* node){
           }
 }
 void d_case2(struct node* node){
-         struct node* s = sibling(child);
+         struct node* s = sibling(node);
          if(!s->is_black){
-              child->parent->is_black = false;
+              node->parent->is_black = false;
               s->is_black = true;
               //Rotate it to the left if the child is the parent's left child
               if(child = child->parent->left){
-                   rotate_left(child->parent);
+                   rotate_left(node->parent);
               }
               else{
-                   rotate_right(child->parent);
+                   rotate_right(node->parent);
               }
               d_case3(node);
          }
 }
+//This executes if everything surrounding the node is black
 void d_case3(struct node* node){
+     struct node* sibling = sibling(node);
 
+     if(node->parent->is_black && sibling->is_black && (sibling->left->is_black || sibling->left == NULL) && (sibling->right->is_black || sibling->right == NULL)){
+          sibling->is_black = false;
+          d_case1(node->parent);
+     }
+     else{
+          d_case4(node)
+     }
+}
+void d_case4(struct node* node){
+     struct node* sibling = sibling(node);
+     //Change up some colors if the node being deleted is black with a red parent
+     if(!(node->parent->is_black) && (sibling->is_black) && (sibling->left->is_black || sibling->left == NULL) && (sibling->right->is_black || sibling->right == NULL)){
+          sibling->is_black = false;
+          node->parent->is_black = true;
+     }
+     else{
+          d_case5(node);
+     }
+}
+void d_case5(struct node* node){
+     struct node* sibling = sibling(node);
+
+     if(sibling->is_black){
+          //The node is the left child and its sibling has different colored children
+          if(node == node->parent->left && sibling->right->is_black && !sibling->left->is_black){
+               sibling->is_black = false;
+               sibling->left->is_black = true;
+               rotate_right(sibling);
+          }
+          else if(node == node->parent->right && sibling->left->is_black && !sibling->right->is_black){
+               sibling->is_black = false;
+               sibling->right->is_black = true;
+               rotate_left(sibling);
+          }
+     }
+     d_case6(node);
+}
+void d_case6(struct node* node){
+     struct node* sibling = sibling(node);
+
+     //Make the node's sibling have the same color as its parent
+     if(node->parent->is_black){
+          sibling->is_black = true;
+     }
+     else{
+          sibling->is_black = false;
+     }
+     //Then color the node black
+     node->parent->is_black = true;
+
+     if(node = node->parent->left){
+          sibling->right->is_black = true;
+          rotate_left(node->parent);
+     }
+     else{
+          sibling->left->is_black = true;
+          rotate_right(node->parent);
+     }
 }
