@@ -382,4 +382,88 @@ struct Node* lookUp(struct Node* current, int element){
           }
      }
 }
+//Replace the values of a node with another node
+void replace_node(struct node* n, struct node* child){
+     //Turn the child's parent into the new nodes
+     child->parent = n->parent;
+     if(n == n->parent->left){
+          child->parent->left = child;
+     }
+     else{
+          child->parent->right = child;
+     }
+}
+//Start the delete function and make sure the preconditinos are met
+void deleteInit(struct node* current){
+     if(current->left == NULL || current->right == NULL){
+          deleteNorm(current);
+     }
+     else{
+          findSuccessor(current);
+     }
+}
+//Find the in order successor to the node
+void findSuccessor(struct node* current){
+     Node* n = current;
+     int minimum = current->right->data;
+     Node* min = current->right;
+     current = current->right;
+     //Go down the tree and find the smallest value on the right
+     while(current != NULL){
+          if(current->data < minimum){
+               minimum = current->data;
+               min = current;
+          }
+          current = current->left;
+     }
+     //Overwrite the value of the node n with the in order successor
+     n->data = minimum;
+     //Run back over the delete method with the node that held the in order successor
+     deleteInit(min);
+}
+//Delete a node with no more than one non leaf child
+void deleteNorm(struct node* current){
+     if(current->right == NULL){
+          struct node* child = current->left;
+     }
+     else if{
+          struct node* child = current->right;
+     }
+     else{
+          //Check what happens if it has no children
+     }
+     replace_node(current, child);
+     if(current->is_black){
+          if(!(child->is_black)){
+               child->is_black = true;
+          }
+          else{
+                  }
+          }
+     }
+     delete current;
+}
+void d_case1(struct node* node){ 
+          //Make sure the node isn't the new parent bc then we'd be done
+          if(child->parent != NULL){
+                  d_case2(node);
+          }
+}
+void d_case2(struct node* node){
+         struct node* s = sibling(child);
+         if(!s->is_black){
+              child->parent->is_black = false;
+              s->is_black = true;
+              //Rotate it to the left if the child is the parent's left child
+              if(child = child->parent->left){
+                   rotate_left(child->parent);
+              }
+              else{
+                   rotate_right(child->parent);
+              }
+              d_case3(node);
+         }
+}
+void d_case3(struct node* node){
 
+}
