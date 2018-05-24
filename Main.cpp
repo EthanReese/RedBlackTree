@@ -29,6 +29,16 @@ void rotateLeft(Node* node);
 void fixTree(Node* node);
 void findLeaf(struct Node* current, struct Node* n);
 struct Node* addNode(int element, Node* &root);
+struct Node* lookUp(struct Node*, int);
+struct Node* deleteNorm(struct Node* current);
+void findSuccessor(struct Node*);
+void d_case1(struct Node*);
+void d_case2(struct Node*);
+void d_case3(struct Node*);
+void d_case4(struct Node*);
+void d_case5(struct Node*);
+void d_case6(struct Node*);
+struct Node* deleteInit(struct Node*);
 
 int main(){
      bool going = true;
@@ -86,6 +96,7 @@ int main(){
                     int element = 0;
                     convert >> element;
                     delete input_2;
+                    head = deleteInit(lookUp(head, element));
                     
                } 
                else{
@@ -383,7 +394,7 @@ struct Node* lookUp(struct Node* current, int element){
      }
 }
 //Replace the values of a node with another node
-void replace_node(struct node* n, struct node* child){
+void replace_node(struct Node* n, struct Node* child){
      //Turn the child's parent into the new nodes
      child->parent = n->parent;
      if(n == n->parent->left){
@@ -394,53 +405,76 @@ void replace_node(struct node* n, struct node* child){
      }
 }
 //Start the delete function and make sure the preconditinos are met
-void deleteInit(struct node* current){
+struct Node* deleteInit(struct Node* current){
+     struct Node* node = current;
      if(current->left == NULL || current->right == NULL){
-          deleteNorm(current);
+          node = deleteNorm(current);
      }
      else{
           findSuccessor(current);
      }
+     //Find the head and return it
+     while(node->parent != NULL){
+          node = node->parent;
+     }
+     return node;
 }
-//Find the in order successor to the node
-void findSuccessor(struct node* current){
+//I was originally finding the successor but its better with the predecessorbut its too complicated to change it.
+void findSuccessor(struct Node* current){
      Node* n = current;
-     int minimum = current->right->data;
-     Node* min = current->right;
-     current = current->right;
+     int maximum = current->left->data;
+     Node* max = current->left;
+     current = current->left;
      //Go down the tree and find the smallest value on the right
      while(current != NULL){
-          if(current->data < minimum){
-               minimum = current->data;
-               min = current;
+          if(current->data > maximum){
+               maximum = current->data;
+               max = current;
           }
-          current = current->left;
+          current = current->right;
      }
-     //Overwrite the value of the node n with the in order successor
-     n->data = minimum;
-     //Run back over the delete method with the node that held the in order successor
-     deleteInit(min);
+     //Run back over the delete method with the node that held the in order successor with the data changed back to the original
+     n->data = maximum;
+     deleteInit(max);
 }
 //Delete a node with no more than one non leaf child
-struct node* deleteNorm(struct node* current){
-     if(current->right == NULL){
-          struct node* child = current->left;
-     }
-     else if{
-          struct node* child = current->right;
-     }
-     else{
+struct Node* deleteNorm(struct Node* current){
+     struct Node* child = NULL;
+     if(current->right == NULL && current->left == NULL){
           if(current->is_black == false){
-               struct node* parent = current->parent;
+               struct Node* parent = current->parent;
+               if(current == parent->right){
+                    parent->right = NULL;
+               }
+               else{
+                    parent->left = NULL;
+               }
                delete current;
                return parent;
           }
-          else{
-               struct node* parent = current->parent;
+          else{ 
+               struct Node* parent = current->parent;
                d_case1(current);
+               if(current == parent->right){
+                    parent->right = NULL;
+               }
+               else{
+                    parent->left = NULL;
+               }
                delete current;
                return parent;
           }
+     }
+     else if(current->right == NULL){
+          child = current->left;
+     }
+     else if(current->left == NULL){
+          child = current->right;
+     }
+     //It really never should hit this
+     else{
+          cout << "ERROR" << endl;
+          return NULL;
      }
      replace_node(current, child);
      if(current->is_black){
@@ -451,89 +485,103 @@ struct node* deleteNorm(struct node* current){
                d_case1(child);                  
           }
      }
+     struct Node* r_node = NULL;
+     //This might be imperfect but I'm basically just trying to find any non NULL node
+     if(current->parent != NULL){
+          r_node = current->parent;
+          cout << "Parent" << endl;
+     }
+     else if(current->right != NULL){
+          r_node = current->right;
+          cout << "Right" << endl;
+     }
+     else{
+          r_node = current->left;
+          cout << "Left" << endl;
+     }
+     cout << "Here" << endl;
      delete current;
+     return r_node;
 }
-void d_case1(struct node* node){ 
+void d_case1(struct Node* node){ 
           //Make sure the node isn't the new parent bc then we'd be done
-          if(child->parent != NULL){
+          if(node->parent != NULL){
                   d_case2(node);
           }
 }
-void d_case2(struct node* node){
-         struct node* s = sibling(node);
-         if(!s->is_black){
+void d_case2(struct Node* node){
+         struct Node* s = sibling(node);
+         if(!(s->is_black)){
               node->parent->is_black = false;
               s->is_black = true;
               //Rotate it to the left if the child is the parent's left child
-              if(child = child->parent->left){
-                   rotate_left(node->parent);
+              if(node == node->parent->left){
+                   rotateLeft(node->parent);
               }
               else{
-                   rotate_right(node->parent);
+                   rotateRight(node->parent);
               }
-              d_case3(node);
          }
+     d_case3(node);
 }
 //This executes if everything surrounding the node is black
-void d_case3(struct node* node){
-     struct node* sibling = sibling(node);
-
-     if(node->parent->is_black && sibling->is_black && (sibling->left->is_black || sibling->left == NULL) && (sibling->right->is_black || sibling->right == NULL)){
-          sibling->is_black = false;
+void d_case3(struct Node* node){
+     struct Node* s = sibling(node);
+     if((node->parent->is_black && s->is_black) && (s->left == NULL || s->left->is_black ) && (s->right == NULL || s->right->is_black)){
+          s->is_black = false;
           d_case1(node->parent);
      }
      else{
-          d_case4(node)
+          d_case4(node);
      }
 }
-void d_case4(struct node* node){
-     struct node* sibling = sibling(node);
+void d_case4(struct Node* node){
+     struct Node* s = sibling(node);
      //Change up some colors if the node being deleted is black with a red parent
-     if(!(node->parent->is_black) && (sibling->is_black) && (sibling->left->is_black || sibling->left == NULL) && (sibling->right->is_black || sibling->right == NULL)){
-          sibling->is_black = false;
+     if(!(node->parent->is_black) && (s->is_black) && (s->left == NULL || s->left->is_black) && (s->right == NULL || s->right->is_black )){
+          s->is_black = false;
           node->parent->is_black = true;
      }
      else{
           d_case5(node);
      }
 }
-void d_case5(struct node* node){
-     struct node* sibling = sibling(node);
-
-     if(sibling->is_black){
+void d_case5(struct Node* node){
+     struct Node* s = sibling(node);
+     if(s->is_black){
           //The node is the left child and its sibling has different colored children
-          if(node == node->parent->left && sibling->right->is_black && !sibling->left->is_black){
-               sibling->is_black = false;
-               sibling->left->is_black = true;
-               rotate_right(sibling);
+          if(node == node->parent->left && s->right->is_black && !s->left->is_black){
+               s->is_black = false;
+               s->left->is_black = true;
+               rotateRight(s);
           }
-          else if(node == node->parent->right && sibling->left->is_black && !sibling->right->is_black){
-               sibling->is_black = false;
-               sibling->right->is_black = true;
-               rotate_left(sibling);
+          else if(node == node->parent->right && s->left->is_black && !s->right->is_black){
+               s->is_black = false;
+               s->right->is_black = true;
+               rotateLeft(s);
           }
      }
      d_case6(node);
 }
-void d_case6(struct node* node){
-     struct node* sibling = sibling(node);
+void d_case6(struct Node* node){
+     struct Node* s = sibling(node);
 
      //Make the node's sibling have the same color as its parent
      if(node->parent->is_black){
-          sibling->is_black = true;
+          s->is_black = true;
      }
      else{
-          sibling->is_black = false;
+          s->is_black = false;
      }
      //Then color the node black
      node->parent->is_black = true;
 
-     if(node = node->parent->left){
-          sibling->right->is_black = true;
-          rotate_left(node->parent);
+     if(node == node->parent->left){
+          s->right->is_black = true;
+          rotateLeft(node->parent);
      }
      else{
-          sibling->left->is_black = true;
-          rotate_right(node->parent);
+          s->left->is_black = true;
+          rotateRight(node->parent);
      }
 }
