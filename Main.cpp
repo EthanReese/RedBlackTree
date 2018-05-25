@@ -144,9 +144,76 @@ int main(){
                     break;
                }
           }
-          printTree(head);
           delete input;
           delete[] input_1;
+          cout << "Enter the numbers separated by returns and enter the character N when done, L to lookup, D to delete, or P to print." << endl;
+          while(going){
+               cout << "Number: ";
+               char* input =  new char[80];
+               cin >> input;
+               //If the user inputs the N then the program needs to stop
+               if(strcmp(input, "N") == 0){
+                    going = false;
+                    printTree(head);
+               }
+               //If they put in P then it prints it
+               if(strcmp(input, "P") == 0){
+                    printTree(head);
+               }
+               //The directions say to ignore 0
+               else if(strcmp(input, "0") == 0){ 
+               }
+               //Get a number input and then run the lookup function on that number
+               else if(strcmp(input, "L") == 0){
+                       char* input_2;
+                       input_2 = new char[80];
+                       cout << "Please input the number that you would like to lookup: ";
+                       cin >> input_2;
+                       stringstream convert;
+                       convert << input_2;
+                       int element = 0;
+                       convert >> element;
+                       delete input_2; 
+                       if(lookUp(head, element) != NULL){
+                              cout << "The element is in the tree." << endl;
+                       }
+                       else{
+                               cout << "The element is not in the tree." << endl;
+                       }
+               }
+              //Get a number input and then run all of the deletion structure on it
+               else if(strcmp(input, "D") == 0){
+                    char* input_2;
+                    input_2 = new char[80];
+                    cout << "Please input the number that you would like to delete: ";
+                    cin >> input_2;
+                    stringstream convert;
+                    convert << input_2;
+                    int element = 0;
+                    convert >> element;
+                    delete input_2;
+                    if(lookUp(head, element)){
+                         head = deleteInit(lookUp(head, element));
+                    }
+                    else{
+                         cout << "That number isn't in the tree" << endl;
+                    }
+               } 
+               else{
+                       //Turn the input into an integer
+                       stringstream convert;
+                       convert << input;
+                       int element = 0;
+                       convert >> element;
+                       delete[] input;
+                       if(head != NULL){
+                         head = addNode(element, head);
+                       }
+                       else{
+                         head = newBlackNode(element);
+                       }
+               }
+          }
      }
 }
 //Shortcut to initialize new nodes as they are created
@@ -407,11 +474,20 @@ void replace_node(struct Node* n, struct Node* child){
 //Start the delete function and make sure the preconditinos are met
 struct Node* deleteInit(struct Node* current){
      struct Node* node = current;
-     if(current->left == NULL || current->right == NULL){
+     //If its the only thing in the tree than it needs to just delete and return null
+     if(current->left == NULL && current->parent == NULL && current->right == NULL){
+          delete current;
+          return NULL;
+     }
+     else if(current->left == NULL || current->right == NULL){
           node = deleteNorm(current);
      }
      else{
           findSuccessor(current);
+     }
+     //This means that the tree is gone
+     if(node == NULL){
+          return NULL;
      }
      //Find the head and return it
      while(node->parent != NULL){
@@ -461,6 +537,7 @@ struct Node* deleteNorm(struct Node* current){
                else{
                     parent->left = NULL;
                }
+               current->parent->is_black = true;
                delete current;
                return parent;
           }
@@ -489,17 +566,13 @@ struct Node* deleteNorm(struct Node* current){
      //This might be imperfect but I'm basically just trying to find any non NULL node
      if(current->parent != NULL){
           r_node = current->parent;
-          cout << "Parent" << endl;
      }
      else if(current->right != NULL){
           r_node = current->right;
-          cout << "Right" << endl;
      }
      else{
           r_node = current->left;
-          cout << "Left" << endl;
      }
-     cout << "Here" << endl;
      delete current;
      return r_node;
 }
@@ -565,22 +638,19 @@ void d_case5(struct Node* node){
 }
 void d_case6(struct Node* node){
      struct Node* s = sibling(node);
-
+     cout << node->data << endl;
      //Make the node's sibling have the same color as its parent
-     if(node->parent->is_black){
-          s->is_black = true;
-     }
-     else{
-          s->is_black = false;
-     }
+     s->is_black = node->parent->is_black;
      //Then color the node black
      node->parent->is_black = true;
 
      if(node == node->parent->left){
           s->right->is_black = true;
           rotateLeft(node->parent);
+          cout << "HEre" << endl;
      }
      else{
+          //FLAG
           s->left->is_black = true;
           rotateRight(node->parent);
      }
