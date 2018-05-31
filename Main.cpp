@@ -623,12 +623,12 @@ void d_case5(struct Node* node){
      struct Node* s = sibling(node);
      if(s->is_black){
           //The node is the left child and its sibling has different colored children
-          if(node == node->parent->left && s->right->is_black && !s->left->is_black){
+          if(node == node->parent->left && (s->right == NULL || s->right->is_black) && !s->left->is_black){
                s->is_black = false;
                s->left->is_black = true;
                rotateRight(s);
           }
-          else if(node == node->parent->right && s->left->is_black && !s->right->is_black){
+          else if(node == node->parent->right && (s->left == NULL || s->left->is_black) && !s->right->is_black){
                s->is_black = false;
                s->right->is_black = true;
                rotateLeft(s);
