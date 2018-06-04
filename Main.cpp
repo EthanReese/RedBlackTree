@@ -464,7 +464,7 @@ struct Node* lookUp(struct Node* current, int element){
 void replace_node(struct Node* n, struct Node* child){
      //Turn the child's parent into the new nodes
      child->parent = n->parent;
-     if(n == n->parent->left){
+     if(n->parent != NULL && n == n->parent->left){
           child->parent->left = child;
      }
      else{
@@ -478,6 +478,17 @@ struct Node* deleteInit(struct Node* current){
      if(current->left == NULL && current->parent == NULL && current->right == NULL){
           delete current;
           return NULL;
+     }
+     //If it is the only thing left in the tree excpt for one child then its a special case
+     else if(current->parent == NULL && current->right == NULL && current->left->right == NULL && current->left->left == NULL){
+          Node* node = current->left;
+          delete current;
+          return node;
+     }
+     else if(current->parent == NULL && current->left == NULL && current->right->right == NULL&& current->right->left == NULL){
+          Node* node = current->right;
+          delete current;
+          return node;
      }
      else if(current->left == NULL || current->right == NULL){
           node = deleteNorm(current);
