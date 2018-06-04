@@ -241,6 +241,10 @@ void printTree(Node* node){
      q.push(node);
      cout << "Tree: " << endl;
      bool moreonlevel = true;
+     if(node == NULL){
+             cout << "NULL Tree" << endl;
+             return;
+     }
      //Keep going while there are still nodes on the level.
      while(moreonlevel){
           int levelCount = q.size();
@@ -649,7 +653,6 @@ void d_case5(struct Node* node){
 }
 void d_case6(struct Node* node){
      struct Node* s = sibling(node);
-     cout << node->data << endl;
      //Make the node's sibling have the same color as its parent
      s->is_black = node->parent->is_black;
      //Then color the node black
@@ -658,7 +661,6 @@ void d_case6(struct Node* node){
      if(node == node->parent->left){
           s->right->is_black = true;
           rotateLeft(node->parent);
-          cout << "HEre" << endl;
      }
      else{
           //FLAG
