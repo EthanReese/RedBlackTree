@@ -486,11 +486,13 @@ struct Node* deleteInit(struct Node* current){
      //If it is the only thing left in the tree excpt for one child then its a special case
      else if(current->parent == NULL && current->right == NULL && current->left->right == NULL && current->left->left == NULL){
           Node* node = current->left;
+          node->parent = NULL;
           delete current;
           return node;
      }
      else if(current->parent == NULL && current->left == NULL && current->right->right == NULL&& current->right->left == NULL){
           Node* node = current->right;
+          node->parent = NULL;
           delete current;
           return node;
      }
